@@ -1,3 +1,2 @@
-# War-Multiplayer
-
-War is a multiplayer 2D action game I am currently (October 2016) working on. The game uses Libgdx with [Ashley](https://github.com/libgdx/ashley) and [Java-WebSocket](https://github.com/TooTallNate/Java-WebSocket) for multiplayer. 
+# Networked-Shooter
+A barebones networked shooter using the box2d debugger for rendering and web sockets for networking
