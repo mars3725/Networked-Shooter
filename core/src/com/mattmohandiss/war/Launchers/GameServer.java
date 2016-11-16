@@ -47,7 +47,11 @@ public class GameServer extends ApplicationAdapter {
 	@Override
 	public void render() {
 		globalWorld.update(Gdx.graphics.getDeltaTime());
-		console.draw();
+		try {
+			console.draw();
+		} catch (IndexOutOfBoundsException ex) {
+			ex.printStackTrace();
+		}
 	}
 
 	@Override

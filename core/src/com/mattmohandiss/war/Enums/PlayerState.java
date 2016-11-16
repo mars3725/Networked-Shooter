@@ -17,14 +17,14 @@ public enum PlayerState implements State<Entity> {
 		@Override
 		public void enter(Entity entity) {
 			//Mappers.networking.get(entity).game.client.send(new Message(MessageType.changeState, Mappers.networking.get(entity).game.playerID, new int[]{((PlayerState) Mappers.stateMachine.get(entity).stateMachine.getCurrentState()).ordinal()}));
-			Timer timer = new Timer();
-			timer.scheduleTask(new Timer.Task() {
+			Mappers.networking.get(entity).timer.scheduleTask(new Timer.Task() {
 				@Override
 				public void run() {
-					if (Mappers.stateMachine.get(entity).stateMachine.getCurrentState() == PlayerState.Moving) {
+					if (Mappers.stateMachine.get(entity).stateMachine.getCurrentState() == Moving) {
+						Mappers.networking.get(entity).game.client.send(new Message(MessageType.position, Mappers.networking.get(entity).game.playerID, new int[]{((int) Mappers.physics.get(entity).body.getPosition().x), (int) Mappers.physics.get(entity).body.getPosition().y}));
 						Mappers.networking.get(entity).game.client.send(new Message(MessageType.velocity, Mappers.networking.get(entity).game.playerID, new int[]{((int) Mappers.physics.get(entity).body.getLinearVelocity().x), ((int) Mappers.physics.get(entity).body.getLinearVelocity().y)}));
 					} else {
-						timer.stop();
+						Mappers.networking.get(entity).timer.stop();
 					}
 				}
 			}, 0, .25f);
@@ -63,6 +63,16 @@ public enum PlayerState implements State<Entity> {
 		public void enter(Entity entity) {
 			//here's more text
 			//Mappers.networking.get(entity).game.client.send(new Message(MessageType.changeState, Mappers.networking.get(entity).game.playerID, new int[]{((PlayerState) Mappers.stateMachine.get(entity).stateMachine.getCurrentState()).ordinal()}));
+			Mappers.networking.get(entity).timer.scheduleTask(new Timer.Task() {
+				@Override
+				public void run() {
+					if (Mappers.stateMachine.get(entity).stateMachine.getCurrentState() == Idle) {
+						Mappers.networking.get(entity).game.client.send(new Message(MessageType.position, Mappers.networking.get(entity).game.playerID, new int[]{((int) Mappers.physics.get(entity).body.getPosition().x), (int) Mappers.physics.get(entity).body.getPosition().y}));
+					} else {
+						Mappers.networking.get(entity).timer.stop();
+					}
+				}
+			}, 0, .25f);
 		}
 
 		@Override

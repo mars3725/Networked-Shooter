@@ -1,6 +1,7 @@
 package com.mattmohandiss.war.Components;
 
 import com.badlogic.ashley.core.Component;
+import com.badlogic.gdx.utils.Timer;
 import com.mattmohandiss.war.GameScreen;
 
 /**
@@ -8,4 +9,5 @@ import com.mattmohandiss.war.GameScreen;
  */
 public class NetworkingComponent implements Component {
 	public GameScreen game;
+	public Timer timer = new Timer();
 }

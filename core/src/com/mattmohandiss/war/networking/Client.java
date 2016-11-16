@@ -7,7 +7,6 @@ package com.mattmohandiss.war.networking;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.TimeUtils;
-import com.badlogic.gdx.utils.Timer;
 import com.mattmohandiss.war.Controller;
 import com.mattmohandiss.war.Enums.GameState;
 import com.mattmohandiss.war.Enums.MessageType;
@@ -56,16 +55,6 @@ public class Client extends WebSocketClient {
 					game.localWorld.addPlayer(game.playerID);
 					Gdx.input.setInputProcessor(new Controller(game));
 					Mappers.networking.get(game.getPlayer()).game = game;
-					Timer timer = new Timer();
-					timer.scheduleTask(new Timer.Task() {
-						@Override
-						public void run() {
-							if (Mappers.stateMachine.get(game.getPlayer()).stateMachine.isInState(PlayerState.Idle)) {
-								Mappers.networking.get(game.getPlayer()).game.client.send(new Message(MessageType.position, Mappers.networking.get(game.getPlayer()).game.playerID, new int[]{((int) Mappers.physics.get(game.getPlayer()).body.getPosition().x), ((int) Mappers.physics.get(game.getPlayer()).body.getPosition().y)}));
-								System.out.println("here");
-							}
-						}
-					}, 0, 0.25f);
 					game.gameState = GameState.inProgress;
 					send(new Message(MessageType.addPlayer, game.playerID));
 					break;
