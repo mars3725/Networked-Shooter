@@ -24,7 +24,6 @@ public class GameServer extends ApplicationAdapter {
 
 	@Override
 	public void create() {
-		//sample text
 		VisUI.load();
 		console = new GUIConsole(VisUI.getSkin());
 		console.setCommandExecutor(new Commander(this));

@@ -52,14 +52,14 @@ public class Client extends WebSocketClient {
 			switch (actualMessage.type) {
 				case clientJoin:
 					game.playerID = actualMessage.id;
-					game.localWorld.addPlayer(game.playerID);
+					game.localWorld.addPlayer(game.playerID, false);
 					Gdx.input.setInputProcessor(new Controller(game));
 					Mappers.networking.get(game.getPlayer()).game = game;
 					game.gameState = GameState.inProgress;
 					send(new Message(MessageType.addPlayer, game.playerID));
 					break;
 				case addPlayer:
-					game.localWorld.addPlayer(actualMessage.id);
+					game.localWorld.addPlayer(actualMessage.id, true);
 					break;
 				case position:
 					Mappers.physics.get(game.localWorld.players.get(actualMessage.id)).body.setLinearVelocity(0, 0);

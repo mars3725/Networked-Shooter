@@ -66,7 +66,7 @@ public class Server extends WebSocketServer {
 		if (actualMessage != null) {
 			switch (actualMessage.type) {
 				case addPlayer:
-					gameServer.globalWorld.addPlayer(actualMessage.id);
+					gameServer.globalWorld.addPlayer(actualMessage.id, true);
 					sendToAllExcept(conn, actualMessage);
 					//need to wait for physics world update
 					gameServer.globalWorld.players.forEach((entry) -> {

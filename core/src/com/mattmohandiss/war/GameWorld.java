@@ -120,8 +120,13 @@ public class GameWorld {
 		loop.dispose();
 	}
 
-	public void addPlayer(int ID) {
-		Entity player = entityCreator.createCharacter();
+	public void addPlayer(int ID, boolean makeEnemy) {
+		Entity player;
+		if (makeEnemy) {
+			player = entityCreator.createEnemy();
+		} else {
+			player = entityCreator.createCharacter();
+		}
 		players.put(ID, player);
 		engine.addEntity(player);
 	}
