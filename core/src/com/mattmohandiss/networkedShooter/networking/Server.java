@@ -3,7 +3,6 @@ package com.mattmohandiss.networkedShooter.networking;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.IntMap;
 import com.badlogic.gdx.utils.TimeUtils;
-import com.badlogic.gdx.utils.Timer;
 import com.mattmohandiss.networkedShooter.Enums.MessageType;
 import com.mattmohandiss.networkedShooter.Enums.PlayerState;
 import com.mattmohandiss.networkedShooter.Launchers.GameServer;
@@ -16,6 +15,8 @@ import org.java_websocket.server.WebSocketServer;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * Created by Matthew on 9/25/16.
@@ -29,14 +30,14 @@ public class Server extends WebSocketServer {
 	public Server(InetSocketAddress address) {
 		super(address);
 
-		timer.scheduleTask(new Timer.Task() {
+		timer.schedule(new TimerTask() {
 			@Override
 			public void run() {
 				gameServer.globalWorld.players.forEach((player) -> {
-					sendToAllExcept(null, new Message(MessageType.position, player.key, new int[]{((int) Mappers.physics.get(gameServer.globalWorld.players.get(player.key)).body.getPosition().x), ((int) Mappers.physics.get(gameServer.globalWorld.players.get(player.key)).body.getPosition().y)}));
+					sendToAllExcept(null, new Message(MessageType.position, player.key, new int[]{((int) Mappers.physics.get(gameServer.globalWorld.players.get(player.key)).body.getPosition().x * 100), ((int) Mappers.physics.get(gameServer.globalWorld.players.get(player.key)).body.getPosition().y * 100)}));
 				});
 			}
-		}, 0, .25f);
+		}, 250, ((long) 250));
 	}
 
 	@Override
@@ -70,10 +71,8 @@ public class Server extends WebSocketServer {
 
 	@Override
 	public void onMessage(WebSocket conn, ByteBuffer bytes) {
-		//gameServer.console.log("received message (" + message + ") from " + conn.getRemoteSocketAddress()); // + " with timestamp " + TimeUtils.nanoTime()
-
 		Message actualMessage = processMessage(bytes);
-		gameServer.console.log("Message of type: " + actualMessage.type + " from address: " + conn.getRemoteSocketAddress());
+		//gameServer.console.log("Message of type: " + actualMessage.type + " from address: " + conn.getRemoteSocketAddress());
 		if (actualMessage != null) {
 			switch (actualMessage.type) {
 				case addPlayer:
@@ -81,12 +80,12 @@ public class Server extends WebSocketServer {
 					sendToAllExcept(conn, actualMessage);
 					//need to wait for physics world update
 					gameServer.globalWorld.players.forEach((player) -> {
-						sendToClient(conn, new Message(MessageType.position, player.key, new int[]{((int) Mappers.physics.get(gameServer.globalWorld.players.get(player.key)).body.getPosition().x), ((int) Mappers.physics.get(gameServer.globalWorld.players.get(player.key)).body.getPosition().y)}));
+						sendToClient(conn, new Message(MessageType.position, player.key, new int[]{((int) Mappers.physics.get(gameServer.globalWorld.players.get(player.key)).body.getPosition().x * 100), ((int) Mappers.physics.get(gameServer.globalWorld.players.get(player.key)).body.getPosition().y * 100)}));
 					});
 					break;
 				case position:
 					Mappers.physics.get(gameServer.globalWorld.players.get(actualMessage.id)).body.setLinearVelocity(0, 0);
-					Mappers.physics.get(gameServer.globalWorld.players.get(actualMessage.id)).body.setTransform(actualMessage.contents[0], actualMessage.contents[1], 0);
+					Mappers.physics.get(gameServer.globalWorld.players.get(actualMessage.id)).body.setTransform(actualMessage.contents[0] / 100, actualMessage.contents[1] / 100, 0);
 					//sendToAllExcept(conn, actualMessage);
 					break;
 				case removePlayer:
@@ -98,7 +97,7 @@ public class Server extends WebSocketServer {
 					sendToAllExcept(conn, actualMessage);
 					break;
 				case fireBullet:
-					gameServer.globalWorld.fireBullet(actualMessage.id, new Vector3(actualMessage.contents[0], actualMessage.contents[1], 0));
+					gameServer.globalWorld.fireBullet(actualMessage.id, new Vector3(actualMessage.contents[0], actualMessage.contents[1], 0), true);
 					sendToAllExcept(conn, actualMessage);
 					break;
 				case changeState:

@@ -5,15 +5,13 @@ import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.utils.viewport.FillViewport;
 import com.mattmohandiss.networkedShooter.Assets;
-import com.mattmohandiss.networkedShooter.GameScreen;
+import com.mattmohandiss.networkedShooter.ClientSetupScreen;
 
 public class GameClient extends Game {
-	public static final int WindowWidth = 200;
-	public static final int WindowHeight = 200;
+	public final int WindowWidth = 200;
+	public final int WindowHeight = 200;
 	public OrthographicCamera camera;
-	public FillViewport viewport;
 
 	@Override
 	public void create() {
@@ -25,13 +23,13 @@ public class GameClient extends Game {
 		camera = new OrthographicCamera(WindowWidth, WindowHeight);
 		camera.position.set(camera.viewportWidth / 2f, camera.viewportHeight / 2f, 0);
 		camera.update();
-		viewport = new FillViewport(camera.viewportWidth, camera.viewportHeight, camera);
-		setScreen(new GameScreen(this));
+		//viewport = new FillViewport(camera.viewportWidth, camera.viewportHeight, camera);
+		setScreen(new ClientSetupScreen(this));
 	}
 
 	@Override
 	public void resize(int width, int height) {
-		viewport.update(width, height);
+		//viewport.update(width, height);
 	}
 
 	@Override

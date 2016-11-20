@@ -1,9 +1,7 @@
 package com.mattmohandiss.networkedShooter;
 
-import com.badlogic.ashley.core.Engine;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
@@ -26,8 +24,7 @@ public class HUD {
 	public HUD(GameScreen game) {
 		this.game = game;
 		viewport = new FitViewport(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), new OrthographicCamera());
-		stage = new Stage(viewport, new SpriteBatch());
-		Engine eng = new Engine();
+		stage = new Stage(viewport);
 
 		Table table = new Table();
 		table.setFillParent(true);

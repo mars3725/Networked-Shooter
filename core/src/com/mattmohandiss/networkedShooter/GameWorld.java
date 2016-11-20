@@ -135,8 +135,8 @@ public class GameWorld {
 		players.remove(ID);
 	}
 
-	public void fireBullet(int ID, Vector3 coordinates) {
-		if (client != null && client.game.playerID == ID) {
+	public void fireBullet(int ID, Vector3 coordinates, boolean makeEnemy) {
+		if (makeEnemy) {
 			engine.addEntity(entityCreator.createBullet(coordinates, ID, true));
 		} else {
 			engine.addEntity(entityCreator.createBullet(coordinates, ID, false));
@@ -144,9 +144,7 @@ public class GameWorld {
 	}
 
 	public void update(float deltaTime) {
-		if (client != null) {
-			engine.update(deltaTime);
-		}
+		engine.update(deltaTime);
 		world.step(1 / 60f, 6, 2);
 	}
 

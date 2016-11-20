@@ -42,11 +42,11 @@ public class Controller implements InputProcessor {
 	@Override
 	public boolean touchDown(int screenX, int screenY, int pointer, int button) {
 		Vector3 adjustedCoords = game.gameClient.camera.unproject(new Vector3(screenX, screenY, 0),
-				game.gameClient.viewport.getScreenX(), game.gameClient.viewport.getScreenY(),
-				game.gameClient.viewport.getScreenWidth(), game.gameClient.viewport.getScreenHeight());
+				game.viewport.getScreenX(), game.viewport.getScreenY(),
+				game.viewport.getScreenWidth(), game.viewport.getScreenHeight());
 		adjustedCoords.set(((int) adjustedCoords.x), ((int) adjustedCoords.y), 0);
 
-		game.localWorld.fireBullet(game.playerID, adjustedCoords.cpy());
+		game.localWorld.fireBullet(game.playerID, adjustedCoords.cpy(), false);
 		game.client.send(new Message(MessageType.fireBullet, game.playerID, new int[]{((int) adjustedCoords.x), ((int) adjustedCoords.y)}));
 		return false;
 	}

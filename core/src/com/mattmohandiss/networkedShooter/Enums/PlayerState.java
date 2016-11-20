@@ -21,7 +21,7 @@ public enum PlayerState implements State<Entity> {
 				@Override
 				public void run() {
 					if (Mappers.stateMachine.get(entity).stateMachine.getCurrentState() == Moving) {
-						Mappers.networking.get(entity).game.client.send(new Message(MessageType.position, Mappers.networking.get(entity).game.playerID, new int[]{((int) Mappers.physics.get(entity).body.getPosition().x), (int) Mappers.physics.get(entity).body.getPosition().y}));
+						//Mappers.networking.get(entity).game.client.send(new Message(MessageType.position, Mappers.networking.get(entity).game.playerID, new int[]{((int) Mappers.physics.get(entity).body.getPosition().x), (int) Mappers.physics.get(entity).body.getPosition().y}));
 						Mappers.networking.get(entity).game.client.send(new Message(MessageType.velocity, Mappers.networking.get(entity).game.playerID, new int[]{((int) Mappers.physics.get(entity).body.getLinearVelocity().x), ((int) Mappers.physics.get(entity).body.getLinearVelocity().y)}));
 					} else {
 						Mappers.networking.get(entity).timer.stop();
@@ -54,6 +54,7 @@ public enum PlayerState implements State<Entity> {
 
 		@Override
 		public void exit(Entity entity) {
+			Mappers.networking.get(entity).game.client.send(new Message(MessageType.velocity, Mappers.networking.get(entity).game.playerID, new int[]{0, 0}));
 			Mappers.physics.get(entity).body.setLinearVelocity(0, 0);
 		}
 	},
@@ -66,7 +67,7 @@ public enum PlayerState implements State<Entity> {
 				@Override
 				public void run() {
 					if (Mappers.stateMachine.get(entity).stateMachine.getCurrentState() == Idle) {
-						Mappers.networking.get(entity).game.client.send(new Message(MessageType.position, Mappers.networking.get(entity).game.playerID, new int[]{((int) Mappers.physics.get(entity).body.getPosition().x), (int) Mappers.physics.get(entity).body.getPosition().y}));
+						Mappers.networking.get(entity).game.client.send(new Message(MessageType.position, Mappers.networking.get(entity).game.playerID, new int[]{((int) Mappers.physics.get(entity).body.getPosition().x * 100), (int) Mappers.physics.get(entity).body.getPosition().y * 100}));
 					} else {
 						Mappers.networking.get(entity).timer.stop();
 					}

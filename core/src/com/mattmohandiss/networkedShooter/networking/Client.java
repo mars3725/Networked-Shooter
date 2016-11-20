@@ -58,17 +58,21 @@ public class Client extends WebSocketClient {
 					game.localWorld.addPlayer(actualMessage.id, true);
 					break;
 				case position:
-					Mappers.physics.get(game.localWorld.players.get(actualMessage.id)).body.setLinearVelocity(0, 0);
-					Mappers.physics.get(game.localWorld.players.get(actualMessage.id)).body.setTransform(actualMessage.contents[0], actualMessage.contents[1], 0);
+					Gdx.app.postRunnable(() -> {
+						Mappers.physics.get(game.localWorld.players.get(actualMessage.id)).body.setLinearVelocity(0, 0);
+						Mappers.physics.get(game.localWorld.players.get(actualMessage.id)).body.setTransform(actualMessage.contents[0] / 100, actualMessage.contents[1] / 100, 0);
+					});
 					break;
 				case removePlayer:
 					game.localWorld.removePlayer(actualMessage.id);
 					break;
 				case velocity:
-					Mappers.physics.get(game.localWorld.players.get(actualMessage.id)).body.setLinearVelocity(actualMessage.contents[0], actualMessage.contents[1]);
+					Gdx.app.postRunnable(() -> {
+						Mappers.physics.get(game.localWorld.players.get(actualMessage.id)).body.setLinearVelocity(actualMessage.contents[0], actualMessage.contents[1]);
+					});
 					break;
 				case fireBullet:
-					game.localWorld.fireBullet(actualMessage.id, new Vector3(actualMessage.contents[0], actualMessage.contents[1], 0));
+					game.localWorld.fireBullet(actualMessage.id, new Vector3(actualMessage.contents[0], actualMessage.contents[1], 0), true);
 					break;
 				case changeState:
 					Mappers.stateMachine.get(game.localWorld.players.get(actualMessage.id)).stateMachine.changeState(PlayerState.values()[actualMessage.contents[0]]);

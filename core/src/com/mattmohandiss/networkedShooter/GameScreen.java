@@ -1,16 +1,14 @@
 package com.mattmohandiss.networkedShooter;
 
 import com.badlogic.ashley.core.Entity;
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
+import com.badlogic.gdx.utils.viewport.FillViewport;
+import com.badlogic.gdx.utils.viewport.Viewport;
 import com.mattmohandiss.networkedShooter.Enums.GameState;
 import com.mattmohandiss.networkedShooter.Launchers.GameClient;
 import com.mattmohandiss.networkedShooter.networking.Client;
-
-import java.net.URI;
-import java.net.URISyntaxException;
 
 
 /**
@@ -21,31 +19,27 @@ public class GameScreen extends ScreenAdapter {
 	public HUD hud;
 	public GameWorld localWorld;
 	public Client client;
-	public Integer playerID = -1;
+	public Integer playerID;
 	public GameState gameState = GameState.loading;
+	public Viewport viewport;
 	private Box2DDebugRenderer debugRenderer = new Box2DDebugRenderer();
 
-	public GameScreen(GameClient gameClient) {
+	public GameScreen(GameClient gameClient, Client client) {
 		this.gameClient = gameClient;
-
-		try {
-			Client client;
-			client = new Client(new URI("ws://localhost:8855"));
-			this.client = client;
-			client.game = this;
-			localWorld = new GameWorld(client);
-			localWorld.create();
-			hud = new HUD(this);
-			client.connect();
-		} catch (URISyntaxException e) {
-			e.printStackTrace();
-		}
+		this.client = client;
+		viewport = new FillViewport(gameClient.WindowWidth, gameClient.WindowHeight);
+		client.game = this;
+		localWorld = new GameWorld(client);
+		localWorld.create();
+		hud = new HUD(this);
+		client.connect();
 	}
 
 	@Override
 	public void render(float delta) {
+		super.render(delta);
 		if (gameState == GameState.inProgress) {
-			gameClient.viewport.apply();
+			viewport.apply();
 			Vector2 position = Mappers.physics.get(getPlayer()).body.getPosition();
 			gameClient.camera.position.set(position.x, position.y, 0);
 			gameClient.camera.update();
@@ -58,8 +52,13 @@ public class GameScreen extends ScreenAdapter {
 
 			localWorld.update(delta);
 		} else if (gameState == GameState.finished) {
-			Gdx.app.exit();
+			gameClient.setScreen(new ClientSetupScreen(gameClient));
 		}
+	}
+
+	@Override
+	public void resize(int width, int height) {
+		viewport.update(width, height);
 	}
 
 	public Entity getPlayer() {
