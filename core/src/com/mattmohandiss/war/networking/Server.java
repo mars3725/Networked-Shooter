@@ -3,6 +3,7 @@ package com.mattmohandiss.war.networking;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.IntMap;
 import com.badlogic.gdx.utils.TimeUtils;
+import com.badlogic.gdx.utils.Timer;
 import com.mattmohandiss.war.Enums.MessageType;
 import com.mattmohandiss.war.Enums.PlayerState;
 import com.mattmohandiss.war.Launchers.GameServer;
@@ -23,17 +24,28 @@ public class Server extends WebSocketServer {
 	public GameServer gameServer;
 	public IntMap<WebSocket> clients = new IntMap<>();
 	private int uniqueClientCount = 0;
+	private Timer timer = new Timer();
 
 	public Server(InetSocketAddress address) {
 		super(address);
+
+		timer.scheduleTask(new Timer.Task() {
+			@Override
+			public void run() {
+				System.out.print(gameServer.globalWorld.players.size);
+				gameServer.globalWorld.players.forEach((player) -> {
+					sendToAllExcept(null, new Message(MessageType.position, player.key, new int[]{((int) Mappers.physics.get(gameServer.globalWorld.players.get(player.key)).body.getPosition().x), ((int) Mappers.physics.get(gameServer.globalWorld.players.get(player.key)).body.getPosition().y)}));
+				});
+			}
+		}, 0, .25f);
 	}
 
 	@Override
 	public void onOpen(WebSocket conn, ClientHandshake handshake) {
 		gameServer.console.log("new connection to " + conn.getRemoteSocketAddress());
 
-		gameServer.globalWorld.players.forEach((entry) -> {
-			sendToClient(conn, new Message(MessageType.addPlayer, entry.key));
+		gameServer.globalWorld.players.forEach((player) -> {
+			sendToClient(conn, new Message(MessageType.addPlayer, player.key));
 		});
 
 		clients.put(uniqueClientCount, conn);
@@ -69,14 +81,14 @@ public class Server extends WebSocketServer {
 					gameServer.globalWorld.addPlayer(actualMessage.id, true);
 					sendToAllExcept(conn, actualMessage);
 					//need to wait for physics world update
-					gameServer.globalWorld.players.forEach((entry) -> {
-						sendToClient(conn, new Message(MessageType.position, entry.key, new int[]{((int) Mappers.physics.get(gameServer.globalWorld.players.get(entry.key)).body.getPosition().x), ((int) Mappers.physics.get(gameServer.globalWorld.players.get(entry.key)).body.getPosition().y)}));
+					gameServer.globalWorld.players.forEach((player) -> {
+						sendToClient(conn, new Message(MessageType.position, player.key, new int[]{((int) Mappers.physics.get(gameServer.globalWorld.players.get(player.key)).body.getPosition().x), ((int) Mappers.physics.get(gameServer.globalWorld.players.get(player.key)).body.getPosition().y)}));
 					});
 					break;
 				case position:
 					Mappers.physics.get(gameServer.globalWorld.players.get(actualMessage.id)).body.setLinearVelocity(0, 0);
 					Mappers.physics.get(gameServer.globalWorld.players.get(actualMessage.id)).body.setTransform(actualMessage.contents[0], actualMessage.contents[1], 0);
-					sendToAllExcept(conn, actualMessage);
+					//sendToAllExcept(conn, actualMessage);
 					break;
 				case removePlayer:
 					conn.close(CloseFrame.NORMAL);

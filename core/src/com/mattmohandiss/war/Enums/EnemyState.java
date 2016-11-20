@@ -8,24 +8,7 @@ import com.badlogic.gdx.ai.msg.Telegram;
  * Created by Matthew on 9/23/16.
  */
 public enum EnemyState implements State<Entity> {
-	Wander {
-		@Override
-		public void enter(Entity entity) {
-
-		}
-
-		@Override
-		public void update(Entity entity) {
-
-		}
-
-		@Override
-		public void exit(Entity entity) {
-
-		}
-	},
-
-	Chase {
+	Moving {
 		@Override
 		public void enter(Entity entity) {
 
@@ -43,23 +26,6 @@ public enum EnemyState implements State<Entity> {
 	},
 
 	Idle {
-		@Override
-		public void enter(Entity entity) {
-
-		}
-
-		@Override
-		public void update(Entity entity) {
-
-		}
-
-		@Override
-		public void exit(Entity entity) {
-
-		}
-	},
-
-	Dead() {
 		@Override
 		public void enter(Entity entity) {
 

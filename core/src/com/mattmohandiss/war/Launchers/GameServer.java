@@ -7,7 +7,6 @@ import com.kotcrab.vis.ui.VisUI;
 import com.mattmohandiss.war.Commander;
 import com.mattmohandiss.war.GameWorld;
 import com.mattmohandiss.war.Systems.StateMachineSystem;
-import com.mattmohandiss.war.Systems.SteeringSystem;
 import com.mattmohandiss.war.networking.Server;
 import com.strongjoshua.console.GUIConsole;
 
@@ -32,7 +31,6 @@ public class GameServer extends ApplicationAdapter {
 		console.setVisible(true);
 
 		engine.addSystem(new StateMachineSystem());
-		engine.addSystem(new SteeringSystem());
 
 		Server server = new Server(new InetSocketAddress("localhost", 8855));
 		this.server = server;

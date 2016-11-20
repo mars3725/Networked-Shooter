@@ -12,6 +12,7 @@ import com.badlogic.gdx.physics.box2d.CircleShape;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.mattmohandiss.war.Components.*;
 import com.mattmohandiss.war.Enums.CollisionBits;
+import com.mattmohandiss.war.Enums.EnemyState;
 import com.mattmohandiss.war.Enums.PlayerState;
 
 /**
@@ -34,6 +35,7 @@ public class EntityCreator {
 		MovementComponent movementComponent = new MovementComponent();
 //		movementComponent.controller = new Controller();
 		player.add(movementComponent);
+
 		NetworkingComponent networkingComponent = new NetworkingComponent();
 		player.add(networkingComponent);
 
@@ -42,6 +44,10 @@ public class EntityCreator {
 
 	public Entity createEnemy() {
 		Entity enemy = playerBase();
+
+		StateMachineComponent stateMachineComponent = new StateMachineComponent();
+		stateMachineComponent.stateMachine = new DefaultStateMachine<>(enemy, EnemyState.Idle);
+		enemy.add(stateMachineComponent);
 
 		SteeringComponent steeringComponent = new SteeringComponent();
 		steeringComponent.steerable = new SteerableEntity(enemy);

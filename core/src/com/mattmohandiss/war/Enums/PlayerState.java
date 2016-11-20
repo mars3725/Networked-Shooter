@@ -61,7 +61,6 @@ public enum PlayerState implements State<Entity> {
 	Idle {
 		@Override
 		public void enter(Entity entity) {
-			//here's more text
 			//Mappers.networking.get(entity).game.client.send(new Message(MessageType.changeState, Mappers.networking.get(entity).game.playerID, new int[]{((PlayerState) Mappers.stateMachine.get(entity).stateMachine.getCurrentState()).ordinal()}));
 			Mappers.networking.get(entity).timer.scheduleTask(new Timer.Task() {
 				@Override

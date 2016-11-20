@@ -9,7 +9,6 @@ import com.badlogic.gdx.utils.IntMap;
 import com.mattmohandiss.war.Enums.CollisionBits;
 import com.mattmohandiss.war.Enums.MessageType;
 import com.mattmohandiss.war.Systems.StateMachineSystem;
-import com.mattmohandiss.war.Systems.SteeringSystem;
 import com.mattmohandiss.war.networking.Client;
 import com.mattmohandiss.war.networking.Message;
 import com.mattmohandiss.war.networking.Server;
@@ -38,7 +37,6 @@ public class GameWorld {
 
 	private GameWorld() {
 		engine.addSystem(new StateMachineSystem());
-		engine.addSystem(new SteeringSystem());
 
 		world.setContactListener(new ContactListener() {
 			@Override
