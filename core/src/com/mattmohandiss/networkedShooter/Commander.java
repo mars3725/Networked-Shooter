@@ -1,6 +1,6 @@
 package com.mattmohandiss.networkedShooter;
 
-import com.mattmohandiss.networkedShooter.Launchers.GameServer;
+import com.mattmohandiss.networkedShooter.Screens.GameServer;
 import com.strongjoshua.console.CommandExecutor;
 
 import java.io.IOException;

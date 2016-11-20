@@ -2,11 +2,12 @@ package com.mattmohandiss.networkedShooter.networking;
 
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.IntMap;
+import com.badlogic.gdx.utils.ObjectMap;
 import com.badlogic.gdx.utils.TimeUtils;
 import com.mattmohandiss.networkedShooter.Enums.MessageType;
 import com.mattmohandiss.networkedShooter.Enums.PlayerState;
-import com.mattmohandiss.networkedShooter.Launchers.GameServer;
 import com.mattmohandiss.networkedShooter.Mappers;
+import com.mattmohandiss.networkedShooter.Screens.GameServer;
 import org.java_websocket.WebSocket;
 import org.java_websocket.framing.CloseFrame;
 import org.java_websocket.handshake.ClientHandshake;
@@ -24,6 +25,7 @@ import java.util.TimerTask;
 public class Server extends WebSocketServer {
 	public GameServer gameServer;
 	public IntMap<WebSocket> clients = new IntMap<>();
+	public ObjectMap<String, int[]> teams = new ObjectMap<>();
 	private int uniqueClientCount = 0;
 	private Timer timer = new Timer();
 

@@ -1,4 +1,4 @@
-package com.mattmohandiss.networkedShooter.Launchers;
+package com.mattmohandiss.networkedShooter.Screens;
 
 import com.badlogic.gdx.Application;
 import com.badlogic.gdx.Game;
@@ -6,7 +6,6 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.mattmohandiss.networkedShooter.Assets;
-import com.mattmohandiss.networkedShooter.ClientSetupScreen;
 
 public class GameClient extends Game {
 	public final int WindowWidth = 200;

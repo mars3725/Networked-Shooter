@@ -1,4 +1,4 @@
-package com.mattmohandiss.networkedShooter;
+package com.mattmohandiss.networkedShooter.Screens;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
@@ -15,7 +15,6 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Timer;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.kotcrab.vis.ui.VisUI;
-import com.mattmohandiss.networkedShooter.Launchers.GameClient;
 import com.mattmohandiss.networkedShooter.networking.Client;
 
 import java.net.URI;

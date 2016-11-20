@@ -2,7 +2,7 @@ package com.mattmohandiss.networkedShooter.server;
 
 import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
-import com.mattmohandiss.networkedShooter.Launchers.GameServer;
+import com.mattmohandiss.networkedShooter.Screens.GameServer;
 
 public class ServerLauncher {
 	public static void main(String[] arg) {

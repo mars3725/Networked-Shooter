@@ -6,6 +6,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.mattmohandiss.networkedShooter.Enums.GameState;
 import com.mattmohandiss.networkedShooter.Enums.MessageType;
 import com.mattmohandiss.networkedShooter.Enums.PlayerState;
+import com.mattmohandiss.networkedShooter.Screens.GameScreen;
 import com.mattmohandiss.networkedShooter.networking.Message;
 
 /**

@@ -1,4 +1,4 @@
-package com.mattmohandiss.networkedShooter.Launchers;
+package com.mattmohandiss.networkedShooter.Screens;
 
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.gdx.ApplicationAdapter;

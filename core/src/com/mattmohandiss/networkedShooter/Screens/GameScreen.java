@@ -1,4 +1,4 @@
-package com.mattmohandiss.networkedShooter;
+package com.mattmohandiss.networkedShooter.Screens;
 
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.ScreenAdapter;
@@ -7,7 +7,9 @@ import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.utils.viewport.FillViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.mattmohandiss.networkedShooter.Enums.GameState;
-import com.mattmohandiss.networkedShooter.Launchers.GameClient;
+import com.mattmohandiss.networkedShooter.GameWorld;
+import com.mattmohandiss.networkedShooter.HUD;
+import com.mattmohandiss.networkedShooter.Mappers;
 import com.mattmohandiss.networkedShooter.networking.Client;
 
 

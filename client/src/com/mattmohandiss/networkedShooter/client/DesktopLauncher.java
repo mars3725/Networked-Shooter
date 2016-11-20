@@ -2,7 +2,7 @@ package com.mattmohandiss.networkedShooter.client;
 
 import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
-import com.mattmohandiss.networkedShooter.Launchers.GameClient;
+import com.mattmohandiss.networkedShooter.Screens.GameClient;
 
 public class DesktopLauncher {
 	public static void main(String[] arg) {
