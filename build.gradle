@@ -34,7 +34,7 @@ allprojects {
     }
 }
 
-project(":desktop") {
+project(":client") {
     apply plugin: "java"
 
 
