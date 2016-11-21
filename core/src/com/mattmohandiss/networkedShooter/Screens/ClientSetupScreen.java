@@ -33,7 +33,6 @@ public class ClientSetupScreen extends ScreenAdapter {
 
 	public ClientSetupScreen(GameClient gameClient) {
 		this.gameClient = gameClient;
-		VisUI.load();
 		Gdx.input.setInputProcessor(stage);
 
 		table.setFillParent(true);

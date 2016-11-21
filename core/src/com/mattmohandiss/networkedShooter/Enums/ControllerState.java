@@ -71,7 +71,7 @@ public enum ControllerState implements State<Entity> {
 				@Override
 				public void run() {
 					if (Mappers.stateMachine.get(entity).stateMachine.getCurrentState() == Idle) {
-						Mappers.networking.get(entity).game.client.send(new Message(MessageType.position, Mappers.networking.get(entity).game.playerID, new int[]{((int) Mappers.physics.get(entity).body.getPosition().x * 100), (int) Mappers.physics.get(entity).body.getPosition().y * 100}));
+						Mappers.networking.get(entity).game.client.send(new Message(MessageType.position, Mappers.networking.get(entity).game.playerID, new int[]{(int) (Mappers.physics.get(entity).body.getPosition().x * 100), (int) (Mappers.physics.get(entity).body.getPosition().y * 100)}));
 					} else {
 						cancel();
 					}
@@ -90,7 +90,7 @@ public enum ControllerState implements State<Entity> {
 		}
 	},
 
-	Die {
+	Dead {
 		@Override
 		public void enter(Entity entity) {
 			Mappers.networking.get(entity).game.client.close();

@@ -28,17 +28,20 @@ public class Server extends WebSocketServer {
 
 	public Server(InetSocketAddress address) {
 		super(address);
+	}
 
+	private void broadcastPositions() {
+		gameServer.globalWorld.getPlayers().forEach((player) -> {
+			if (Mappers.stateMachine.get(player).stateMachine.isInState(PlayerState.Idle)) {
+				sendToAllExcept(null, new Message(MessageType.position, Mappers.id.get(player).entityID, new int[]{(int) (Mappers.physics.get(gameServer.globalWorld.getPlayer(Mappers.id.get(player).entityID)).body.getPosition().x * 100), (int) (Mappers.physics.get(gameServer.globalWorld.getPlayer(Mappers.id.get(player).entityID)).body.getPosition().y * 100)}));
+			}
+		});
 		timer.schedule(new TimerTask() {
 			@Override
 			public void run() {
-				gameServer.globalWorld.getPlayers().forEach((player) -> {
-					if (Mappers.stateMachine.get(player).stateMachine.isInState(PlayerState.Idle)) {
-						sendToAllExcept(null, new Message(MessageType.position, Mappers.id.get(player).entityID, new int[]{((int) Mappers.physics.get(gameServer.globalWorld.getEntity(Mappers.id.get(player).entityID)).body.getPosition().x * 100), ((int) Mappers.physics.get(gameServer.globalWorld.getEntity(Mappers.id.get(player).entityID)).body.getPosition().y * 100)}));
-					}
-				});
+				broadcastPositions();
 			}
-		}, 250, 250);
+		}, 250);
 	}
 
 	@Override
@@ -60,7 +63,7 @@ public class Server extends WebSocketServer {
 		int key = clients.findKey(conn, true, -1);
 		if (key != -1) {
 			clients.remove(key);
-			gameServer.globalWorld.remove(gameServer.globalWorld.getEntity(key));
+			gameServer.globalWorld.remove(gameServer.globalWorld.getPlayer(key));
 			sendToAllExcept(conn, new Message(MessageType.removePlayer, key));
 		}
 	}
@@ -80,19 +83,21 @@ public class Server extends WebSocketServer {
 					gameServer.globalWorld.addPlayer(actualMessage.id, false);
 					sendToAllExcept(conn, actualMessage);
 					gameServer.globalWorld.getPlayers().forEach((player) -> {
-						sendToClient(conn, new Message(MessageType.position, Mappers.id.get(player).entityID, new int[]{((int) Mappers.physics.get(gameServer.globalWorld.getEntity(Mappers.id.get(player).entityID)).body.getPosition().x * 100), ((int) Mappers.physics.get(gameServer.globalWorld.getEntity(Mappers.id.get(player).entityID)).body.getPosition().y * 100)}));
+						sendToClient(conn, new Message(MessageType.position, Mappers.id.get(player).entityID, new int[]{(int) (Mappers.physics.get(gameServer.globalWorld.getPlayer(Mappers.id.get(player).entityID)).body.getPosition().x * 100), (int) (Mappers.physics.get(gameServer.globalWorld.getPlayer(Mappers.id.get(player).entityID)).body.getPosition().y * 100)}));
 					});
 					break;
 				case position:
-					Mappers.physics.get(gameServer.globalWorld.getEntity(actualMessage.id)).body.setLinearVelocity(0, 0);
-					Mappers.physics.get(gameServer.globalWorld.getEntity(actualMessage.id)).body.setTransform(actualMessage.contents[0] / 100, actualMessage.contents[1] / 100, 0);
-					//sendToAllExcept(conn, actualMessage);
+					Mappers.physics.get(gameServer.globalWorld.getPlayer(actualMessage.id)).body.setLinearVelocity(0, 0);
+					if (!gameServer.globalWorld.world.isLocked()) {
+						Mappers.physics.get(gameServer.globalWorld.getPlayer(actualMessage.id)).body.setTransform(actualMessage.contents[0] / 100, actualMessage.contents[1] / 100, 0);
+					}
 					break;
 				case removePlayer:
 					sendToAllExcept(conn, actualMessage);
 					break;
 				case velocity:
-					Mappers.physics.get(gameServer.globalWorld.getEntity(actualMessage.id)).body.setLinearVelocity(actualMessage.contents[0], actualMessage.contents[1]);
+					Mappers.physics.get(gameServer.globalWorld.getPlayer(actualMessage.id)).body.setLinearVelocity(actualMessage.contents[0], actualMessage.contents[1]);
+					sendToAllExcept(conn, new Message(MessageType.position, actualMessage.id, new int[]{(int) (Mappers.physics.get(gameServer.globalWorld.getPlayer(actualMessage.id)).body.getPosition().x * 100), (int) (Mappers.physics.get(gameServer.globalWorld.getPlayer(actualMessage.id)).body.getPosition().y * 100)}));
 					sendToAllExcept(conn, actualMessage);
 					break;
 				case fireBullet:
@@ -100,7 +105,7 @@ public class Server extends WebSocketServer {
 					sendToAllExcept(conn, actualMessage);
 					break;
 				case changeState:
-					Mappers.stateMachine.get(gameServer.globalWorld.getEntity(actualMessage.id)).stateMachine.changeState(PlayerState.values()[actualMessage.contents[0]]);
+					Mappers.stateMachine.get(gameServer.globalWorld.getPlayer(actualMessage.id)).stateMachine.changeState(PlayerState.values()[actualMessage.contents[0]]);
 					sendToAllExcept(conn, actualMessage);
 					break;
 				default:

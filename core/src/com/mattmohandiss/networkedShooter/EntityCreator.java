@@ -83,7 +83,7 @@ public class EntityCreator {
 	}
 
 	public Entity createBullet(Vector3 coordinates, int playerID) {
-		Vector2 playerPos = Mappers.physics.get(world.getEntity(playerID)).body.getPosition();
+		Vector2 playerPos = Mappers.physics.get(world.getPlayer(playerID)).body.getPosition();
 
 		Entity bullet = new Entity();
 		PhysicsComponent physicsComponent = new PhysicsComponent();
@@ -96,12 +96,15 @@ public class EntityCreator {
 		fixtureDef.shape = circle;
 		fixtureDef.filter.categoryBits = CollisionBits.bullet;
 		fixtureDef.filter.maskBits = CollisionBits.player | CollisionBits.wall | CollisionBits.bullet;
+		fixtureDef.isSensor = true;
 		physicsComponent.body.createFixture(fixtureDef);
 		physicsComponent.body.setBullet(true);
 		physicsComponent.body.setTransform(playerPos, 0);
 		bullet.add(physicsComponent);
 
-		bullet.add(new IDComponent());
+		IDComponent idComponent = new IDComponent();
+		idComponent.entityID = playerID;
+		bullet.add(idComponent);
 
 		coordinates.sub(playerPos.x, playerPos.y, 0);
 		coordinates.nor().scl(6000);

@@ -6,7 +6,6 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.utils.viewport.FillViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
-import com.mattmohandiss.networkedShooter.Enums.GameState;
 import com.mattmohandiss.networkedShooter.GameWorld;
 import com.mattmohandiss.networkedShooter.HUD;
 import com.mattmohandiss.networkedShooter.Mappers;
@@ -22,7 +21,6 @@ public class GameScreen extends ScreenAdapter {
 	public GameWorld localWorld;
 	public Client client;
 	public Integer playerID;
-	public GameState gameState = GameState.loading;
 	public Viewport viewport;
 	private Box2DDebugRenderer debugRenderer = new Box2DDebugRenderer();
 
@@ -39,8 +37,7 @@ public class GameScreen extends ScreenAdapter {
 
 	@Override
 	public void render(float delta) {
-		super.render(delta);
-		if (gameState == GameState.inProgress) {
+		if (playerID != null) {
 			viewport.apply();
 			Vector2 position = Mappers.physics.get(getPlayer()).body.getPosition();
 			viewport.getCamera().position.set(position.x, position.y, 0);
@@ -53,8 +50,6 @@ public class GameScreen extends ScreenAdapter {
 			hud.stage.draw();
 
 			localWorld.update(delta);
-		} else if (gameState == GameState.finished) {
-			gameClient.setScreen(new ClientSetupScreen(gameClient));
 		}
 	}
 
@@ -64,6 +59,6 @@ public class GameScreen extends ScreenAdapter {
 	}
 
 	public Entity getPlayer() {
-		return localWorld.getEntity(playerID);
+		return localWorld.getPlayer(playerID);
 	}
 }

@@ -7,10 +7,11 @@ package com.mattmohandiss.networkedShooter.networking;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.Vector3;
 import com.mattmohandiss.networkedShooter.Controller;
-import com.mattmohandiss.networkedShooter.Enums.GameState;
+import com.mattmohandiss.networkedShooter.Enums.ControllerState;
 import com.mattmohandiss.networkedShooter.Enums.MessageType;
 import com.mattmohandiss.networkedShooter.Enums.PlayerState;
 import com.mattmohandiss.networkedShooter.Mappers;
+import com.mattmohandiss.networkedShooter.Screens.ClientSetupScreen;
 import com.mattmohandiss.networkedShooter.Screens.GameScreen;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft_17;
@@ -33,6 +34,12 @@ public class Client extends WebSocketClient {
 
 	@Override
 	public void onClose(int code, String reason, boolean remote) {
+		Gdx.app.postRunnable(new Runnable() {
+			@Override
+			public void run() {
+				game.gameClient.setScreen(new ClientSetupScreen(game.gameClient));
+			}
+		});
 	}
 
 	@Override
@@ -46,11 +53,10 @@ public class Client extends WebSocketClient {
 		if (actualMessage != null) {
 			switch (actualMessage.type) {
 				case clientJoin:
+					game.localWorld.addPlayer(actualMessage.id, true);
 					game.playerID = actualMessage.id;
-					game.localWorld.addPlayer(game.playerID, true);
 					Gdx.input.setInputProcessor(new Controller(game));
 					Mappers.networking.get(game.getPlayer()).game = game;
-					game.gameState = GameState.inProgress;
 					send(new Message(MessageType.addPlayer, game.playerID));
 					break;
 				case addPlayer:
@@ -58,23 +64,27 @@ public class Client extends WebSocketClient {
 					break;
 				case position:
 					Gdx.app.postRunnable(() -> {
-						Mappers.physics.get(game.localWorld.getEntity(actualMessage.id)).body.setLinearVelocity(0, 0);
-						Mappers.physics.get(game.localWorld.getEntity(actualMessage.id)).body.setTransform(actualMessage.contents[0] / 100, actualMessage.contents[1] / 100, 0);
+						Mappers.physics.get(game.localWorld.getPlayer(actualMessage.id)).body.setLinearVelocity(0, 0);
+						Mappers.physics.get(game.localWorld.getPlayer(actualMessage.id)).body.setTransform(actualMessage.contents[0] / 100, actualMessage.contents[1] / 100, 0);
 					});
 					break;
 				case removePlayer:
-					game.localWorld.remove(game.localWorld.getEntity(actualMessage.id));
+					if (actualMessage.id == game.playerID) {
+						Mappers.stateMachine.get(game.getPlayer()).stateMachine.changeState(ControllerState.Dead);
+					} else {
+						game.localWorld.remove(game.localWorld.getPlayer(actualMessage.id));
+					}
 					break;
 				case velocity:
 					Gdx.app.postRunnable(() -> {
-						Mappers.physics.get(game.localWorld.getEntity(actualMessage.id)).body.setLinearVelocity(actualMessage.contents[0], actualMessage.contents[1]);
+						Mappers.physics.get(game.localWorld.getPlayer(actualMessage.id)).body.setLinearVelocity(actualMessage.contents[0], actualMessage.contents[1]);
 					});
 					break;
 				case fireBullet:
 					game.localWorld.fireBullet(actualMessage.id, new Vector3(actualMessage.contents[0], actualMessage.contents[1], 0));
 					break;
 				case changeState:
-					Mappers.stateMachine.get(game.localWorld.getEntity(actualMessage.id)).stateMachine.changeState(PlayerState.values()[actualMessage.contents[0]]);
+					Mappers.stateMachine.get(game.localWorld.getPlayer(actualMessage.id)).stateMachine.changeState(PlayerState.values()[actualMessage.contents[0]]);
 					break;
 				default:
 					System.out.print("Client received an unexpected message from Server");

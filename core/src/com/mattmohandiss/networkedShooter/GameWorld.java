@@ -71,7 +71,7 @@ public class GameWorld {
 				short secondBodyMask = secondFixture.getFilterData().categoryBits;
 
 				if (firstBodyMask == CollisionBits.player && secondBodyMask == CollisionBits.bullet) {
-					if (server != null) {
+					if (server != null && Mappers.id.get(getEntity(firstFixture.getBody())).entityID == Mappers.id.get(getEntity(secondFixture.getBody())).entityID) {
 						int key = server.clients.findKey(getEntity(firstFixture.getBody()), true, -1);
 						if (key != -1) {
 							server.clients.get(key).close(CloseFrame.NORMAL);
@@ -79,7 +79,7 @@ public class GameWorld {
 						}
 					}
 					return true;
-				} else if (firstBodyMask == CollisionBits.bullet && secondBodyMask == CollisionBits.wall) {
+				} else if (firstBodyMask == CollisionBits.wall && secondBodyMask == CollisionBits.bullet) {
 					remove(getEntity(firstFixture.getBody()));
 					return true;
 				}
@@ -154,22 +154,21 @@ public class GameWorld {
 	}
 
 	private Entity getEntity(Body body) {
-		Iterator<Entity> players = getPlayers().iterator();
-		while (players.hasNext()) {
-			Entity player = players.next();
-			if (body.equals(Mappers.physics.get(player).body)) {
-				return player;
+		Iterator<Entity> entities = engine.getEntities().iterator();
+		while (entities.hasNext()) {
+			Entity entity = entities.next();
+			if (body.equals(Mappers.physics.get(entity).body)) {
+				return entity;
 			}
 		}
 		return null;
 	}
 
-	public Entity getEntity(int ID) {
-		Iterator<Entity> players = getPlayers().iterator();
-		while (players.hasNext()) {
-			Entity player = players.next();
-			if (Mappers.id.get(player).entityID == ID) {
-				return player;
+	public Entity getPlayer(int ID) {
+		ImmutableArray<Entity> players = getPlayers();
+		for (int i = 0; i < players.size(); i++) {
+			if (Mappers.id.get(players.get(i)).entityID == ID) {
+				return players.get(i);
 			}
 		}
 		return null;

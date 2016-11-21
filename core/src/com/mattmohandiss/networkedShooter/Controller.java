@@ -4,7 +4,6 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.math.Vector3;
 import com.mattmohandiss.networkedShooter.Enums.ControllerState;
-import com.mattmohandiss.networkedShooter.Enums.GameState;
 import com.mattmohandiss.networkedShooter.Enums.MessageType;
 import com.mattmohandiss.networkedShooter.Screens.GameScreen;
 import com.mattmohandiss.networkedShooter.networking.Message;
@@ -25,7 +24,7 @@ public class Controller implements InputProcessor {
 			Mappers.stateMachine.get(game.getPlayer()).stateMachine.changeState(ControllerState.Moving);
 		} else if (keycode == Input.Keys.ESCAPE) {
 			game.client.send(new Message(MessageType.removePlayer, game.playerID));
-			game.gameState = GameState.finished;
+			Mappers.stateMachine.get(game.getPlayer()).stateMachine.changeState(ControllerState.Dead);
 		}
 		return false;
 	}
