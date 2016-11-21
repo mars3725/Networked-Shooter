@@ -21,9 +21,7 @@ public class Commander extends CommandExecutor {
 	}
 
 	public void players() {
-		gameServer.globalWorld.players.forEach((entry) -> {
-			console.log(entry.value.toString() + " for key " + entry.key);
-		});
+		console.log(gameServer.globalWorld.getPlayers().size() + " players currently connected");
 	}
 
 	public void userCount() {

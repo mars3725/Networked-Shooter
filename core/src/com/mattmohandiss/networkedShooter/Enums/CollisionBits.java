@@ -5,8 +5,6 @@ package com.mattmohandiss.networkedShooter.Enums;
  */
 public class CollisionBits {
 	public static final short wall = 1;
-	public static final short ally = 2;
-	public static final short friendlyBullet = 4;
-	public static final short enemy = 8;
-	public static final short enemyBullet = 16;
+	public static final short player = 2;
+	public static final short bullet = 4;
 }

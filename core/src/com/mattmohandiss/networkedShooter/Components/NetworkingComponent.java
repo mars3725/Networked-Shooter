@@ -1,8 +1,9 @@
 package com.mattmohandiss.networkedShooter.Components;
 
 import com.badlogic.ashley.core.Component;
-import com.badlogic.gdx.utils.Timer;
 import com.mattmohandiss.networkedShooter.Screens.GameScreen;
+
+import java.util.Timer;
 
 /**
  * Created by Matthew on 10/17/16.

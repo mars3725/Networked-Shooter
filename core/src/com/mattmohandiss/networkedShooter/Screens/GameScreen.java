@@ -43,10 +43,10 @@ public class GameScreen extends ScreenAdapter {
 		if (gameState == GameState.inProgress) {
 			viewport.apply();
 			Vector2 position = Mappers.physics.get(getPlayer()).body.getPosition();
-			gameClient.camera.position.set(position.x, position.y, 0);
-			gameClient.camera.update();
+			viewport.getCamera().position.set(position.x, position.y, 0);
+			viewport.getCamera().update();
 
-			debugRenderer.render(localWorld.world, gameClient.camera.combined);
+			debugRenderer.render(localWorld.world, viewport.getCamera().combined);
 
 			hud.stage.getViewport().apply();
 			hud.update();
@@ -64,6 +64,6 @@ public class GameScreen extends ScreenAdapter {
 	}
 
 	public Entity getPlayer() {
-		return localWorld.players.get(playerID);
+		return localWorld.getEntity(playerID);
 	}
 }

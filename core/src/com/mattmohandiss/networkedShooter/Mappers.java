@@ -12,4 +12,5 @@ public class Mappers {
 	public static ComponentMapper<MovementComponent> movement = ComponentMapper.getFor(MovementComponent.class);
 	public static ComponentMapper<SteeringComponent> steering = ComponentMapper.getFor(SteeringComponent.class);
 	public static ComponentMapper<NetworkingComponent> networking = ComponentMapper.getFor(NetworkingComponent.class);
+	public static ComponentMapper<IDComponent> id = ComponentMapper.getFor(IDComponent.class);
 }

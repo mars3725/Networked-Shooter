@@ -2,10 +2,15 @@ package com.mattmohandiss.networkedShooter;
 
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
+import com.badlogic.ashley.core.Family;
+import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.box2d.*;
-import com.badlogic.gdx.utils.IntMap;
+import com.badlogic.gdx.utils.Array;
+import com.mattmohandiss.networkedShooter.Components.IDComponent;
+import com.mattmohandiss.networkedShooter.Components.PhysicsComponent;
+import com.mattmohandiss.networkedShooter.Components.StateMachineComponent;
 import com.mattmohandiss.networkedShooter.Enums.CollisionBits;
 import com.mattmohandiss.networkedShooter.Enums.MessageType;
 import com.mattmohandiss.networkedShooter.Systems.StateMachineSystem;
@@ -14,16 +19,18 @@ import com.mattmohandiss.networkedShooter.networking.Message;
 import com.mattmohandiss.networkedShooter.networking.Server;
 import org.java_websocket.framing.CloseFrame;
 
+import java.util.Iterator;
+
 /**
  * Created by Matthew on 9/25/16.
  */
 public class GameWorld {
 	public Engine engine = new Engine();
 	public World world = new World(new Vector2(0, 0), true);
-	public IntMap<Entity> players = new IntMap<>();
 	public EntityCreator entityCreator = new EntityCreator(this);
 	private Server server;
 	private Client client;
+	private Array<Entity> entitiesForDeletion = new Array<>();
 
 	public GameWorld(Server server) {
 		this();
@@ -61,20 +68,19 @@ public class GameWorld {
 
 			private boolean solveContact(Fixture firstFixture, Fixture secondFixture) {
 				short firstBodyMask = firstFixture.getFilterData().categoryBits;
-				short secondBodyMask = firstFixture.getFilterData().categoryBits;
+				short secondBodyMask = secondFixture.getFilterData().categoryBits;
 
-				if (firstBodyMask == CollisionBits.ally && secondBodyMask == CollisionBits.enemyBullet) {
+				if (firstBodyMask == CollisionBits.player && secondBodyMask == CollisionBits.bullet) {
 					if (server != null) {
-						int key = server.clients.findKey(entityforBody(firstFixture.getBody()), true, -1);
+						int key = server.clients.findKey(getEntity(firstFixture.getBody()), true, -1);
 						if (key != -1) {
 							server.clients.get(key).close(CloseFrame.NORMAL);
 							server.sendToAllExcept(server.clients.get(key), new Message(MessageType.removePlayer, key));
 						}
 					}
 					return true;
-				} else if (firstBodyMask == CollisionBits.enemy && secondBodyMask == CollisionBits.friendlyBullet) {
-					return true;
-				} else if (firstBodyMask == CollisionBits.friendlyBullet && secondBodyMask == CollisionBits.wall) {
+				} else if (firstBodyMask == CollisionBits.bullet && secondBodyMask == CollisionBits.wall) {
+					remove(getEntity(firstFixture.getBody()));
 					return true;
 				}
 				return false;
@@ -113,48 +119,63 @@ public class GameWorld {
 		FixtureDef fixtureDef = new FixtureDef();
 		fixtureDef.shape = loop;
 		fixtureDef.filter.categoryBits = CollisionBits.wall;
-		fixtureDef.filter.maskBits = CollisionBits.ally | CollisionBits.enemy | CollisionBits.friendlyBullet;
+		fixtureDef.filter.maskBits = CollisionBits.player | CollisionBits.bullet;
 		body.createFixture(fixtureDef);
 		loop.dispose();
 	}
 
-	public void addPlayer(int ID, boolean makeEnemy) {
-		Entity player;
-		if (makeEnemy) {
-			player = entityCreator.createEnemy();
-		} else {
-			player = entityCreator.createCharacter();
-		}
-		players.put(ID, player);
+	public void addPlayer(int ID, boolean controllable) {
+		Entity player = entityCreator.createPlayer(controllable);
+		Mappers.id.get(player).entityID = ID;
 		engine.addEntity(player);
 	}
 
-	public void removePlayer(int ID) {
-		world.destroyBody(Mappers.physics.get(players.get(ID)).body);
-		engine.removeEntity(players.get(ID));
-		players.remove(ID);
-	}
-
-	public void fireBullet(int ID, Vector3 coordinates, boolean makeEnemy) {
-		if (makeEnemy) {
-			engine.addEntity(entityCreator.createBullet(coordinates, ID, true));
-		} else {
-			engine.addEntity(entityCreator.createBullet(coordinates, ID, false));
-		}
+	public void fireBullet(int ID, Vector3 coordinates) {
+		Entity bullet = entityCreator.createBullet(coordinates, ID);
+		Mappers.id.get(bullet).entityID = ID;
+		engine.addEntity(bullet);
 	}
 
 	public void update(float deltaTime) {
 		engine.update(deltaTime);
 		world.step(1 / 60f, 6, 2);
-	}
 
-	private Entity entityforBody(Body body) {
-		final Entity[] entity = new Entity[1];
-		players.forEach((entry) -> {
-			if (body.equals(Mappers.physics.get(entry.value).body)) {
-				entity[0] = entry.value;
+		entitiesForDeletion.forEach((entity) -> {
+			if (entity != null) {
+				world.destroyBody(Mappers.physics.get(entity).body);
+				engine.removeEntity(entity);
 			}
 		});
-		return entity[0];
+		entitiesForDeletion.clear();
+	}
+
+	public ImmutableArray<Entity> getPlayers() {
+		return engine.getEntitiesFor(Family.all(PhysicsComponent.class, IDComponent.class, StateMachineComponent.class).get());
+	}
+
+	private Entity getEntity(Body body) {
+		Iterator<Entity> players = getPlayers().iterator();
+		while (players.hasNext()) {
+			Entity player = players.next();
+			if (body.equals(Mappers.physics.get(player).body)) {
+				return player;
+			}
+		}
+		return null;
+	}
+
+	public Entity getEntity(int ID) {
+		Iterator<Entity> players = getPlayers().iterator();
+		while (players.hasNext()) {
+			Entity player = players.next();
+			if (Mappers.id.get(player).entityID == ID) {
+				return player;
+			}
+		}
+		return null;
+	}
+
+	public void remove(Entity entity) {
+		entitiesForDeletion.add(entity);
 	}
 }

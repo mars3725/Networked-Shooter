@@ -7,7 +7,7 @@ import com.badlogic.gdx.ai.msg.Telegram;
 /**
  * Created by Matthew on 9/23/16.
  */
-public enum EnemyState implements State<Entity> {
+public enum NPCState implements State<Entity> {
 	Moving {
 		@Override
 		public void enter(Entity entity) {

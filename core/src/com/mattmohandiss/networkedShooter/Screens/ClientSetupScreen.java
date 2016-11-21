@@ -1,7 +1,6 @@
 package com.mattmohandiss.networkedShooter.Screens;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
@@ -28,19 +27,16 @@ public class ClientSetupScreen extends ScreenAdapter {
 	private final TextButton button;
 	private final Label errorLabel;
 	public GameClient gameClient;
-	private Stage stage;
+	private Stage stage = new Stage(new ScreenViewport());
 	private Timer timer = new Timer();
-	private InputMultiplexer multiplexer = new InputMultiplexer();
+	private Table table = new Table();
 
 	public ClientSetupScreen(GameClient gameClient) {
 		this.gameClient = gameClient;
 		VisUI.load();
-		stage = new Stage(new ScreenViewport());
 		Gdx.input.setInputProcessor(stage);
 
-		Table table = new Table();
 		table.setFillParent(true);
-		stage.addActor(table);
 
 		textField = new TextField("127.0.0.1:8855", VisUI.getSkin());
 		textField.setMaxLength(39);
@@ -50,7 +46,6 @@ public class ClientSetupScreen extends ScreenAdapter {
 				textField.setText("");
 			}
 		});
-		table.add(textField).center();
 
 		errorLabel = new Label("invalid address", VisUI.getSkin());
 		errorLabel.setVisible(false);
@@ -76,11 +71,13 @@ public class ClientSetupScreen extends ScreenAdapter {
 				}
 			}
 		});
+
+		table.add(textField).center();
 		table.row();
 		table.add(button).center().padTop(25);
-
 		table.row();
 		table.add(errorLabel).center().padTop(25);
+		stage.addActor(table);
 	}
 
 	@Override

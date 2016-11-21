@@ -12,7 +12,8 @@ import com.badlogic.gdx.physics.box2d.CircleShape;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.mattmohandiss.networkedShooter.Components.*;
 import com.mattmohandiss.networkedShooter.Enums.CollisionBits;
-import com.mattmohandiss.networkedShooter.Enums.EnemyState;
+import com.mattmohandiss.networkedShooter.Enums.ControllerState;
+import com.mattmohandiss.networkedShooter.Enums.NPCState;
 import com.mattmohandiss.networkedShooter.Enums.PlayerState;
 
 /**
@@ -25,49 +26,8 @@ public class EntityCreator {
 		this.world = world;
 	}
 
-	public Entity createCharacter() {
-		Entity player = playerBase();
-
-		StateMachineComponent stateMachineComponent = new StateMachineComponent();
-		stateMachineComponent.stateMachine = new DefaultStateMachine<>(player, PlayerState.Idle);
-		player.add(stateMachineComponent);
-
-		MovementComponent movementComponent = new MovementComponent();
-//		movementComponent.controller = new Controller();
-		player.add(movementComponent);
-
-		NetworkingComponent networkingComponent = new NetworkingComponent();
-		player.add(networkingComponent);
-
-		return player;
-	}
-
-	public Entity createEnemy() {
-		Entity enemy = playerBase();
-
-		StateMachineComponent stateMachineComponent = new StateMachineComponent();
-		stateMachineComponent.stateMachine = new DefaultStateMachine<>(enemy, EnemyState.Idle);
-		enemy.add(stateMachineComponent);
-
-		SteeringComponent steeringComponent = new SteeringComponent();
-		steeringComponent.steerable = new SteerableEntity(enemy);
-		steeringComponent.steeringBehavior = new PrioritySteering<>(steeringComponent.steerable);
-//		steeringComponent.target = new SteerableEntity(client.ally);
-		steeringComponent.collisionAvoidanceGroup = new BlendedSteering<>(steeringComponent.steerable);
-		steeringComponent.formationMovementGroup = new BlendedSteering<>(steeringComponent.steerable);
-		steeringComponent.individualMovementGroup = new BlendedSteering<>(steeringComponent.steerable);
-		steeringComponent.individualMovementGroup.add(new Pursue<>(steeringComponent.steerable, steeringComponent.target
-		), 1);
-		steeringComponent.steeringBehavior.add(steeringComponent.collisionAvoidanceGroup);
-		steeringComponent.steeringBehavior.add(steeringComponent.formationMovementGroup);
-		steeringComponent.steeringBehavior.add(steeringComponent.individualMovementGroup);
-		//enemy.add(steeringComponent);
-
-		return enemy;
-	}
-
-	private Entity playerBase() {
-		Entity entity = new Entity();
+	public Entity createPlayer(boolean controllable) {
+		Entity player = new Entity();
 		PhysicsComponent physicsComponent = new PhysicsComponent();
 		BodyDef bodyDef = new BodyDef();
 		bodyDef.type = BodyDef.BodyType.DynamicBody;
@@ -77,16 +37,53 @@ public class EntityCreator {
 		circle.setRadius(1);
 		FixtureDef fixtureDef = new FixtureDef();
 		fixtureDef.shape = circle;
-		fixtureDef.filter.categoryBits = CollisionBits.enemy;
-		fixtureDef.filter.maskBits = CollisionBits.wall | CollisionBits.enemy | CollisionBits.ally | CollisionBits.friendlyBullet;
+		fixtureDef.filter.categoryBits = CollisionBits.player;
+		fixtureDef.filter.maskBits = CollisionBits.wall | CollisionBits.bullet | CollisionBits.player;
 		physicsComponent.body.createFixture(fixtureDef);
-		entity.add(physicsComponent);
+		player.add(physicsComponent);
 
-		return entity;
+		player.add(new IDComponent());
+
+		StateMachineComponent stateMachineComponent = new StateMachineComponent();
+		player.add(stateMachineComponent);
+
+		if (controllable) {
+			stateMachineComponent.stateMachine = new DefaultStateMachine<>(player, ControllerState.Idle);
+			player.add(new MovementComponent());
+			player.add(new NetworkingComponent());
+		} else {
+			stateMachineComponent.stateMachine = new DefaultStateMachine<>(player, PlayerState.Idle);
+		}
+
+		return player;
 	}
 
-	public Entity createBullet(Vector3 coordinates, int playerID, boolean friendlyBullet) {
-		Vector2 playerPos = Mappers.physics.get(world.players.get(playerID)).body.getPosition();
+	public Entity createNPC(Entity target) {
+		Entity enemy = createPlayer(false);
+
+		StateMachineComponent stateMachineComponent = new StateMachineComponent();
+		stateMachineComponent.stateMachine = new DefaultStateMachine<>(enemy, NPCState.Idle);
+		enemy.add(stateMachineComponent);
+
+		SteeringComponent steeringComponent = new SteeringComponent();
+		steeringComponent.steerable = new SteerableEntity(enemy);
+		steeringComponent.steeringBehavior = new PrioritySteering<>(steeringComponent.steerable);
+		steeringComponent.target = new SteerableEntity(target);
+		steeringComponent.collisionAvoidanceGroup = new BlendedSteering<>(steeringComponent.steerable);
+		steeringComponent.formationMovementGroup = new BlendedSteering<>(steeringComponent.steerable);
+		steeringComponent.individualMovementGroup = new BlendedSteering<>(steeringComponent.steerable);
+		steeringComponent.individualMovementGroup.add(new Pursue<>(steeringComponent.steerable, steeringComponent.target
+		), 1);
+		steeringComponent.steeringBehavior.add(steeringComponent.collisionAvoidanceGroup);
+		steeringComponent.steeringBehavior.add(steeringComponent.formationMovementGroup);
+		steeringComponent.steeringBehavior.add(steeringComponent.individualMovementGroup);
+		enemy.add(steeringComponent);
+
+		return enemy;
+	}
+
+	public Entity createBullet(Vector3 coordinates, int playerID) {
+		Vector2 playerPos = Mappers.physics.get(world.getEntity(playerID)).body.getPosition();
 
 		Entity bullet = new Entity();
 		PhysicsComponent physicsComponent = new PhysicsComponent();
@@ -97,20 +94,17 @@ public class EntityCreator {
 		circle.setRadius(0.25f);
 		FixtureDef fixtureDef = new FixtureDef();
 		fixtureDef.shape = circle;
-		if (friendlyBullet) {
-			fixtureDef.filter.categoryBits = CollisionBits.friendlyBullet;
-			fixtureDef.filter.maskBits = CollisionBits.enemy | CollisionBits.wall;
-		} else {
-			fixtureDef.filter.categoryBits = CollisionBits.enemyBullet;
-			fixtureDef.filter.maskBits = CollisionBits.ally | CollisionBits.wall;
-		}
+		fixtureDef.filter.categoryBits = CollisionBits.bullet;
+		fixtureDef.filter.maskBits = CollisionBits.player | CollisionBits.wall | CollisionBits.bullet;
 		physicsComponent.body.createFixture(fixtureDef);
 		physicsComponent.body.setBullet(true);
 		physicsComponent.body.setTransform(playerPos, 0);
 		bullet.add(physicsComponent);
 
+		bullet.add(new IDComponent());
+
 		coordinates.sub(playerPos.x, playerPos.y, 0);
-		coordinates.nor().scl(5000);
+		coordinates.nor().scl(6000);
 		physicsComponent.body.applyForceToCenter(coordinates.x, coordinates.y, true);
 
 		return bullet;

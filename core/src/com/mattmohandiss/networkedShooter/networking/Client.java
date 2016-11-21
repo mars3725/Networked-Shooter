@@ -33,7 +33,6 @@ public class Client extends WebSocketClient {
 
 	@Override
 	public void onClose(int code, String reason, boolean remote) {
-		Gdx.app.exit();
 	}
 
 	@Override
@@ -48,34 +47,34 @@ public class Client extends WebSocketClient {
 			switch (actualMessage.type) {
 				case clientJoin:
 					game.playerID = actualMessage.id;
-					game.localWorld.addPlayer(game.playerID, false);
+					game.localWorld.addPlayer(game.playerID, true);
 					Gdx.input.setInputProcessor(new Controller(game));
 					Mappers.networking.get(game.getPlayer()).game = game;
 					game.gameState = GameState.inProgress;
 					send(new Message(MessageType.addPlayer, game.playerID));
 					break;
 				case addPlayer:
-					game.localWorld.addPlayer(actualMessage.id, true);
+					game.localWorld.addPlayer(actualMessage.id, false);
 					break;
 				case position:
 					Gdx.app.postRunnable(() -> {
-						Mappers.physics.get(game.localWorld.players.get(actualMessage.id)).body.setLinearVelocity(0, 0);
-						Mappers.physics.get(game.localWorld.players.get(actualMessage.id)).body.setTransform(actualMessage.contents[0] / 100, actualMessage.contents[1] / 100, 0);
+						Mappers.physics.get(game.localWorld.getEntity(actualMessage.id)).body.setLinearVelocity(0, 0);
+						Mappers.physics.get(game.localWorld.getEntity(actualMessage.id)).body.setTransform(actualMessage.contents[0] / 100, actualMessage.contents[1] / 100, 0);
 					});
 					break;
 				case removePlayer:
-					game.localWorld.removePlayer(actualMessage.id);
+					game.localWorld.remove(game.localWorld.getEntity(actualMessage.id));
 					break;
 				case velocity:
 					Gdx.app.postRunnable(() -> {
-						Mappers.physics.get(game.localWorld.players.get(actualMessage.id)).body.setLinearVelocity(actualMessage.contents[0], actualMessage.contents[1]);
+						Mappers.physics.get(game.localWorld.getEntity(actualMessage.id)).body.setLinearVelocity(actualMessage.contents[0], actualMessage.contents[1]);
 					});
 					break;
 				case fireBullet:
-					game.localWorld.fireBullet(actualMessage.id, new Vector3(actualMessage.contents[0], actualMessage.contents[1], 0), true);
+					game.localWorld.fireBullet(actualMessage.id, new Vector3(actualMessage.contents[0], actualMessage.contents[1], 0));
 					break;
 				case changeState:
-					Mappers.stateMachine.get(game.localWorld.players.get(actualMessage.id)).stateMachine.changeState(PlayerState.values()[actualMessage.contents[0]]);
+					Mappers.stateMachine.get(game.localWorld.getEntity(actualMessage.id)).stateMachine.changeState(PlayerState.values()[actualMessage.contents[0]]);
 					break;
 				default:
 					System.out.print("Client received an unexpected message from Server");
