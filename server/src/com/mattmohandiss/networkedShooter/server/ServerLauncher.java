@@ -9,7 +9,7 @@ public class ServerLauncher {
 		LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
 		config.width = 640;
 		config.height = 360;
-		config.title = "War Server";
+		config.title = "Networked-Shooter Server";
 
 		new LwjglApplication(new GameServer(), config);
 	}

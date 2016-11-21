@@ -9,7 +9,7 @@ public class DesktopLauncher {
 		LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
 		config.width = 640;
 		config.height = 360;
-		config.title = "War Client";
+		config.title = "Networked-Shooter Client";
 
 		new LwjglApplication(new GameClient(), config);
 	}

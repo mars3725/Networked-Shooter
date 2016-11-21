@@ -14,6 +14,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Timer;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.kotcrab.vis.ui.VisUI;
+import com.mattmohandiss.networkedShooter.Assets;
 import com.mattmohandiss.networkedShooter.networking.Client;
 
 import java.net.URI;
@@ -26,6 +27,7 @@ public class ClientSetupScreen extends ScreenAdapter {
 	private final TextField textField;
 	private final TextButton button;
 	private final Label errorLabel;
+	private final Label titleLabel;
 	public GameClient gameClient;
 	private Stage stage = new Stage(new ScreenViewport());
 	private Timer timer = new Timer();
@@ -49,6 +51,8 @@ public class ClientSetupScreen extends ScreenAdapter {
 		errorLabel = new Label("invalid address", VisUI.getSkin());
 		errorLabel.setVisible(false);
 
+		titleLabel = new Label("Networked-Shooter Client", Assets.titleLabelStyle);
+
 		button = new TextButton("Continue", VisUI.getSkin());
 		button.addListener(new ChangeListener() {
 			public void changed(ChangeEvent event, Actor actor) {
@@ -71,7 +75,9 @@ public class ClientSetupScreen extends ScreenAdapter {
 			}
 		});
 
-		table.add(textField).center();
+		table.add(titleLabel).center();
+		table.row();
+		table.add(textField).center().padTop(50);
 		table.row();
 		table.add(button).center().padTop(25);
 		table.row();

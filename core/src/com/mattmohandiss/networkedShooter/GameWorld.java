@@ -80,7 +80,7 @@ public class GameWorld {
 					}
 					return true;
 				} else if (firstBodyMask == CollisionBits.wall && secondBodyMask == CollisionBits.bullet) {
-					remove(getEntity(firstFixture.getBody()));
+					remove(getEntity(secondFixture.getBody()));
 					return true;
 				}
 				return false;

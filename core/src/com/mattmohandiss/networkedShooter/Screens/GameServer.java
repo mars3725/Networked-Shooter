@@ -39,6 +39,7 @@ public class GameServer extends ApplicationAdapter {
 		server.gameServer = this;
 		new Thread(server::run).start();
 		console.log("Server initialized at " + server.getAddress());
+		server.broadcastPositions();
 	}
 
 	@Override

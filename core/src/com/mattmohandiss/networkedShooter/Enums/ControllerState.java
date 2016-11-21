@@ -24,7 +24,6 @@ public enum ControllerState implements State<Entity> {
 				@Override
 				public void run() {
 					if (Mappers.stateMachine.get(entity).stateMachine.getCurrentState() == Moving) {
-						//Mappers.networking.get(entity).game.client.send(new Message(MessageType.position, Mappers.networking.get(entity).game.playerID, new int[]{((int) Mappers.physics.get(entity).body.getPosition().x*100), (int) Mappers.physics.get(entity).body.getPosition().y*100}));
 						Mappers.networking.get(entity).game.client.send(new Message(MessageType.velocity, Mappers.networking.get(entity).game.playerID, new int[]{((int) Mappers.physics.get(entity).body.getLinearVelocity().x), ((int) Mappers.physics.get(entity).body.getLinearVelocity().y)}));
 					} else {
 						cancel();
