@@ -28,7 +28,7 @@ public class Box2dLocation implements Location<Vector2> {
 	}
 
 	public void setPosition(Vector2 position) {
-		this.position = position;
+		this.position.set(position);
 	}
 
 	@Override

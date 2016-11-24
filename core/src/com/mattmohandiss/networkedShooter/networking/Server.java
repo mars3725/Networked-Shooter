@@ -1,6 +1,8 @@
 package com.mattmohandiss.networkedShooter.networking;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.IntMap;
 import com.badlogic.gdx.utils.TimeUtils;
@@ -33,13 +35,11 @@ public class Server extends WebSocketServer {
 
 	public void broadcastPositions() {
 		gameServer.globalWorld.getPlayers().forEach((player) -> {
-			if (Mappers.stateMachine.get(player).stateMachine.isInState(PlayerState.Idle)) {
 				sendToAllExcept(null, new Message(MessageType.position, Mappers.id.get(player).entityID, new int[]{(int) (Mappers.physics.get(gameServer.globalWorld.getPlayer(Mappers.id.get(player).entityID)).body.getPosition().x * 100), (int) (Mappers.physics.get(gameServer.globalWorld.getPlayer(Mappers.id.get(player).entityID)).body.getPosition().y * 100)}));
-			}
 		});
 
 		ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-		scheduler.schedule(this::broadcastPositions, 250, TimeUnit.MILLISECONDS);
+		scheduler.schedule(this::broadcastPositions, 100, TimeUnit.MILLISECONDS);
 	}
 
 	@Override
@@ -47,11 +47,11 @@ public class Server extends WebSocketServer {
 		gameServer.console.log("new connection to " + conn.getRemoteSocketAddress());
 
 		gameServer.globalWorld.getPlayers().forEach((player) -> {
-			sendToClient(conn, new Message(MessageType.addPlayer, Mappers.id.get(player).entityID));
+			sendToClient(conn, new Message(MessageType.addPlayer, Mappers.id.get(player).entityID, new int[]{(int) (Mappers.physics.get(player).body.getPosition().x * 100), (int) (Mappers.physics.get(player).body.getPosition().y * 100)}));
 		});
 
 		clients.put(uniqueClientCount, conn);
-		sendToClient(conn, new Message(MessageType.clientJoin, uniqueClientCount));
+		sendToClient(conn, new Message(MessageType.clientJoin, uniqueClientCount, new int[]{MathUtils.random(-10, 10), MathUtils.random(-10, 10)}));
 		uniqueClientCount++;
 	}
 
@@ -60,8 +60,8 @@ public class Server extends WebSocketServer {
 		gameServer.console.log("closed " + conn.getRemoteSocketAddress() + " with exit code " + code + " with timestamp " + TimeUtils.nanoTime());
 		int key = clients.findKey(conn, true, -1);
 		if (key != -1) {
-			clients.remove(key);
 			gameServer.globalWorld.remove(gameServer.globalWorld.getPlayer(key));
+			clients.remove(key);
 			sendToAllExcept(conn, new Message(MessageType.removePlayer, key));
 		}
 	}
@@ -78,7 +78,7 @@ public class Server extends WebSocketServer {
 		if (actualMessage != null) {
 			switch (actualMessage.type) {
 				case addPlayer:
-					gameServer.globalWorld.addPlayer(actualMessage.id, false);
+					gameServer.globalWorld.addPlayer(actualMessage.id, new Vector2(actualMessage.contents[0] / 100, actualMessage.contents[1] / 100), false);
 					sendToAllExcept(conn, actualMessage);
 					gameServer.globalWorld.getPlayers().forEach((player) -> {
 						sendToClient(conn, new Message(MessageType.position, Mappers.id.get(player).entityID, new int[]{(int) (Mappers.physics.get(gameServer.globalWorld.getPlayer(Mappers.id.get(player).entityID)).body.getPosition().x * 100), (int) (Mappers.physics.get(gameServer.globalWorld.getPlayer(Mappers.id.get(player).entityID)).body.getPosition().y * 100)}));
@@ -86,7 +86,7 @@ public class Server extends WebSocketServer {
 					break;
 				case position:
 					Gdx.app.postRunnable(() -> {
-						Mappers.physics.get(gameServer.globalWorld.getPlayer(actualMessage.id)).body.setLinearVelocity(0, 0);
+						//Mappers.physics.get(gameServer.globalWorld.getPlayer(actualMessage.id)).body.setLinearVelocity(0, 0);
 						Mappers.physics.get(gameServer.globalWorld.getPlayer(actualMessage.id)).body.setTransform(actualMessage.contents[0] / 100, actualMessage.contents[1] / 100, 0);
 					});
 					break;
@@ -114,14 +114,14 @@ public class Server extends WebSocketServer {
 
 	@Override
 	public void onError(WebSocket conn, Exception ex) {
-		gameServer.console.log("an error occurred on " + conn.getRemoteSocketAddress());
+		gameServer.console.log("an error occurred: " + ex.getMessage());
 
 		ex.printStackTrace();
 	}
 
 	public void sendToAllExcept(WebSocket ignoredClient, Message message) {
 		clients.values().forEach((value) -> {
-			if (value != ignoredClient) {
+			if (!value.equals(ignoredClient)) {
 				sendToClient(value, message);
 			}
 		});

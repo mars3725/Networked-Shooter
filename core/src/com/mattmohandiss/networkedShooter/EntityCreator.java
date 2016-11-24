@@ -2,6 +2,7 @@ package com.mattmohandiss.networkedShooter;
 
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.ai.fsm.DefaultStateMachine;
+import com.badlogic.gdx.ai.steer.behaviors.Arrive;
 import com.badlogic.gdx.ai.steer.behaviors.BlendedSteering;
 import com.badlogic.gdx.ai.steer.behaviors.PrioritySteering;
 import com.badlogic.gdx.ai.steer.behaviors.Pursue;
@@ -30,26 +31,38 @@ public class EntityCreator {
 		Entity player = new Entity();
 		PhysicsComponent physicsComponent = new PhysicsComponent();
 		BodyDef bodyDef = new BodyDef();
+		bodyDef.linearDamping = 8f;
 		bodyDef.type = BodyDef.BodyType.DynamicBody;
 		bodyDef.fixedRotation = true;
 		physicsComponent.body = world.world.createBody(bodyDef);
 		CircleShape circle = new CircleShape();
 		circle.setRadius(1);
 		FixtureDef fixtureDef = new FixtureDef();
+		fixtureDef.density = 1;
+		fixtureDef.friction = 1;
 		fixtureDef.shape = circle;
 		fixtureDef.filter.categoryBits = CollisionBits.player;
 		fixtureDef.filter.maskBits = CollisionBits.wall | CollisionBits.bullet | CollisionBits.player;
 		physicsComponent.body.createFixture(fixtureDef);
 		player.add(physicsComponent);
 
+		RubberbandingComponent rubberbandingComponent = new RubberbandingComponent();
+		rubberbandingComponent.steerable = new SteerableEntity(player);
+		rubberbandingComponent.idealPosition = new Box2dLocation(physicsComponent.body.getPosition().cpy(), physicsComponent.body.getAngle());
+		rubberbandingComponent.arriveBehavior = new Arrive<>(rubberbandingComponent.steerable, rubberbandingComponent.idealPosition);
+		rubberbandingComponent.arriveBehavior.setDecelerationRadius(1);
+		rubberbandingComponent.arriveBehavior.setArrivalTolerance(0.01f);
+		player.add(rubberbandingComponent);
+
 		player.add(new IDComponent());
+
+		player.add(new MovementComponent());
 
 		StateMachineComponent stateMachineComponent = new StateMachineComponent();
 		player.add(stateMachineComponent);
 
 		if (controllable) {
 			stateMachineComponent.stateMachine = new DefaultStateMachine<>(player, ControllerState.Idle);
-			player.add(new MovementComponent());
 			player.add(new NetworkingComponent());
 		} else {
 			stateMachineComponent.stateMachine = new DefaultStateMachine<>(player, PlayerState.Idle);
@@ -65,24 +78,25 @@ public class EntityCreator {
 		stateMachineComponent.stateMachine = new DefaultStateMachine<>(enemy, NPCState.Idle);
 		enemy.add(stateMachineComponent);
 
-		SteeringComponent steeringComponent = new SteeringComponent();
-		steeringComponent.steerable = new SteerableEntity(enemy);
-		steeringComponent.steeringBehavior = new PrioritySteering<>(steeringComponent.steerable);
-		steeringComponent.target = new SteerableEntity(target);
-		steeringComponent.collisionAvoidanceGroup = new BlendedSteering<>(steeringComponent.steerable);
-		steeringComponent.formationMovementGroup = new BlendedSteering<>(steeringComponent.steerable);
-		steeringComponent.individualMovementGroup = new BlendedSteering<>(steeringComponent.steerable);
-		steeringComponent.individualMovementGroup.add(new Pursue<>(steeringComponent.steerable, steeringComponent.target
+		AISteeringComponent AISteeringComponent = new AISteeringComponent();
+		AISteeringComponent.steerable = new SteerableEntity(enemy);
+		AISteeringComponent.steeringBehavior = new PrioritySteering<>(AISteeringComponent.steerable);
+		AISteeringComponent.target = new SteerableEntity(target);
+		AISteeringComponent.collisionAvoidanceGroup = new BlendedSteering<>(AISteeringComponent.steerable);
+		AISteeringComponent.formationMovementGroup = new BlendedSteering<>(AISteeringComponent.steerable);
+		AISteeringComponent.individualMovementGroup = new BlendedSteering<>(AISteeringComponent.steerable);
+		AISteeringComponent.individualMovementGroup.add(new Pursue<>(AISteeringComponent.steerable, AISteeringComponent.target
 		), 1);
-		steeringComponent.steeringBehavior.add(steeringComponent.collisionAvoidanceGroup);
-		steeringComponent.steeringBehavior.add(steeringComponent.formationMovementGroup);
-		steeringComponent.steeringBehavior.add(steeringComponent.individualMovementGroup);
-		enemy.add(steeringComponent);
+		AISteeringComponent.steeringBehavior.add(AISteeringComponent.collisionAvoidanceGroup);
+		AISteeringComponent.steeringBehavior.add(AISteeringComponent.formationMovementGroup);
+		AISteeringComponent.steeringBehavior.add(AISteeringComponent.individualMovementGroup);
+		enemy.add(AISteeringComponent);
 
 		return enemy;
 	}
 
 	public Entity createBullet(Vector3 coordinates, int playerID) {
+		//bug in CreateBody
 		Vector2 playerPos = Mappers.physics.get(world.getPlayer(playerID)).body.getPosition();
 
 		Entity bullet = new Entity();

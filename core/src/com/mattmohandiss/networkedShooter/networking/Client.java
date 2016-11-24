@@ -5,6 +5,7 @@ package com.mattmohandiss.networkedShooter.networking;
  */
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.mattmohandiss.networkedShooter.Controller;
 import com.mattmohandiss.networkedShooter.Enums.ControllerState;
@@ -20,6 +21,9 @@ import org.java_websocket.handshake.ServerHandshake;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class Client extends WebSocketClient {
 	public GameScreen game;
@@ -46,6 +50,13 @@ public class Client extends WebSocketClient {
 	public void onMessage(String s) {
 	}
 
+	public void sendPosition() {
+		Mappers.networking.get(game.getPlayer()).game.client.send(new Message(MessageType.position, game.playerID, new int[]{(int) (Mappers.physics.get(game.getPlayer()).body.getPosition().x * 100), (int) (Mappers.physics.get(game.getPlayer()).body.getPosition().y * 100)}));
+
+		ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+		scheduler.schedule(this::sendPosition, 100, TimeUnit.MILLISECONDS);
+	}
+
 	@Override
 	public void onMessage(ByteBuffer bytes) {
 		//System.out.println("received message: " + message);
@@ -53,19 +64,19 @@ public class Client extends WebSocketClient {
 		if (actualMessage != null) {
 			switch (actualMessage.type) {
 				case clientJoin:
-					game.localWorld.addPlayer(actualMessage.id, true);
+					game.localWorld.addPlayer(actualMessage.id, new Vector2(actualMessage.contents[0] / 100, actualMessage.contents[1] / 100), true);
 					game.playerID = actualMessage.id;
 					Gdx.input.setInputProcessor(new Controller(game));
 					Mappers.networking.get(game.getPlayer()).game = game;
-					send(new Message(MessageType.addPlayer, game.playerID));
+					send(new Message(MessageType.addPlayer, game.playerID, actualMessage.contents));
+					sendPosition();
 					break;
 				case addPlayer:
-					game.localWorld.addPlayer(actualMessage.id, false);
+					game.localWorld.addPlayer(actualMessage.id, new Vector2(actualMessage.contents[0] / 100, actualMessage.contents[1] / 100), false);
 					break;
 				case position:
 					Gdx.app.postRunnable(() -> {
-						Mappers.physics.get(game.localWorld.getPlayer(actualMessage.id)).body.setLinearVelocity(0, 0);
-						Mappers.physics.get(game.localWorld.getPlayer(actualMessage.id)).body.setTransform(actualMessage.contents[0] / 100, actualMessage.contents[1] / 100, 0);
+						Mappers.rubberbanding.get(game.localWorld.getPlayer(actualMessage.id)).idealPosition.setPosition(new Vector2(actualMessage.contents[0] / 100, actualMessage.contents[1] / 100));
 					});
 					break;
 				case removePlayer:
@@ -76,15 +87,17 @@ public class Client extends WebSocketClient {
 					}
 					break;
 				case velocity:
-					Gdx.app.postRunnable(() -> {
-						Mappers.physics.get(game.localWorld.getPlayer(actualMessage.id)).body.setLinearVelocity(actualMessage.contents[0], actualMessage.contents[1]);
-					});
+					Mappers.movement.get(game.localWorld.getPlayer(actualMessage.id)).direction.set(new Vector2(actualMessage.contents[0], actualMessage.contents[1]));
 					break;
 				case fireBullet:
 					game.localWorld.fireBullet(actualMessage.id, new Vector3(actualMessage.contents[0], actualMessage.contents[1], 0));
 					break;
 				case changeState:
 					Mappers.stateMachine.get(game.localWorld.getPlayer(actualMessage.id)).stateMachine.changeState(PlayerState.values()[actualMessage.contents[0]]);
+
+					if (actualMessage.contents[0] == PlayerState.Moving.ordinal()) {
+						Mappers.movement.get(game.localWorld.getPlayer(actualMessage.id)).direction.set(new Vector2(actualMessage.contents[1], actualMessage.contents[2]));
+					}
 					break;
 				default:
 					System.out.print("Client received an unexpected message from Server");

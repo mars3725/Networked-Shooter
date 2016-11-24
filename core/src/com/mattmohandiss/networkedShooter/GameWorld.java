@@ -13,6 +13,7 @@ import com.mattmohandiss.networkedShooter.Components.PhysicsComponent;
 import com.mattmohandiss.networkedShooter.Components.StateMachineComponent;
 import com.mattmohandiss.networkedShooter.Enums.CollisionBits;
 import com.mattmohandiss.networkedShooter.Enums.MessageType;
+import com.mattmohandiss.networkedShooter.Systems.RubberbandingSystem;
 import com.mattmohandiss.networkedShooter.Systems.StateMachineSystem;
 import com.mattmohandiss.networkedShooter.networking.Client;
 import com.mattmohandiss.networkedShooter.networking.Message;
@@ -40,6 +41,7 @@ public class GameWorld {
 	public GameWorld(Client client) {
 		this();
 		this.client = client;
+		engine.addSystem(new RubberbandingSystem());
 	}
 
 	private GameWorld() {
@@ -124,8 +126,9 @@ public class GameWorld {
 		loop.dispose();
 	}
 
-	public void addPlayer(int ID, boolean controllable) {
+	public void addPlayer(int ID, Vector2 initialPosition, boolean controllable) {
 		Entity player = entityCreator.createPlayer(controllable);
+		Mappers.physics.get(player).body.setTransform(initialPosition, 0);
 		Mappers.id.get(player).entityID = ID;
 		engine.addEntity(player);
 	}
@@ -138,7 +141,7 @@ public class GameWorld {
 
 	public void update(float deltaTime) {
 		engine.update(deltaTime);
-		world.step(1 / 60f, 6, 2);
+		world.step(deltaTime, 8, 3);
 
 		entitiesForDeletion.forEach((entity) -> {
 			if (entity != null) {

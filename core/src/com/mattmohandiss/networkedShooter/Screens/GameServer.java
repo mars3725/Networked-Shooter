@@ -47,7 +47,7 @@ public class GameServer extends ApplicationAdapter {
 		globalWorld.update(Gdx.graphics.getDeltaTime());
 		try {
 			console.draw();
-		} catch (IndexOutOfBoundsException ex) {
+		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
 	}

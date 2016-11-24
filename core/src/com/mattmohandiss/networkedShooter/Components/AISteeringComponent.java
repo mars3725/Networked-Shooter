@@ -10,7 +10,7 @@ import com.mattmohandiss.networkedShooter.SteerableEntity;
 /**
  * Created by Matthew on 9/23/16.
  */
-public class SteeringComponent implements Component {
+public class AISteeringComponent implements Component {
 	public SteerableEntity steerable;
 	public PrioritySteering<Vector2> steeringBehavior;
 	public Steerable<Vector2> target;

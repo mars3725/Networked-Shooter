@@ -11,17 +11,17 @@ import com.badlogic.gdx.physics.box2d.Body;
  * Created by Matthew on 7/27/16.
  */
 public class SteerableEntity implements Steerable<Vector2> {
-	final SteeringAcceleration<Vector2> steeringOutput = new SteeringAcceleration<>(new Vector2());
-	Body body;
-	Entity entity;
-	float boundingRadius = 0;
-	boolean tagged;
-	float maxLinearSpeed = 10;
-	float maxLinearAcceleration = 10;
-	float maxAngularSpeed = 10;
-	float maxAngularAcceleration = 10;
+	private final SteeringAcceleration<Vector2> steeringOutput = new SteeringAcceleration<>(new Vector2());
+	private Body body;
+	private Entity entity;
+	private float boundingRadius = 0;
+	private boolean tagged;
+	private float maxLinearSpeed = 14;
+	private float maxLinearAcceleration = 1000;
+	private float maxAngularSpeed = 10;
+	private float maxAngularAcceleration = 10;
 
-	public SteerableEntity(Entity entity) {
+	SteerableEntity(Entity entity) {
 		this.entity = entity;
 		body = Mappers.physics.get(entity).body;
 	}
@@ -134,13 +134,28 @@ public class SteerableEntity implements Steerable<Vector2> {
 	}
 
 	public void update(float delta) {
+		if (Mappers.rubberbanding.get(entity) != null) {
+			Mappers.rubberbanding.get(entity).arriveBehavior.calculateSteering(steeringOutput);
+			applyRubberbanding(steeringOutput, delta);
+		}
 
-		Mappers.steering.get(entity).steeringBehavior.calculateSteering(steeringOutput);
-		applySteering(steeringOutput, delta);
+		if (Mappers.aiSteering.get(entity) != null) {
+			Mappers.aiSteering.get(entity).steeringBehavior.calculateSteering(steeringOutput);
+			applyAI(steeringOutput, delta);
+		}
 	}
 
-	protected void applySteering(SteeringAcceleration<Vector2> steering, float deltaTime) {
-		body.setLinearVelocity(steering.linear);
-		body.setAngularVelocity(steering.angular);
+	private void applyRubberbanding(SteeringAcceleration<Vector2> steering, float deltaTime) {
+		if (!steering.linear.isZero()) {
+			if (Mappers.rubberbanding.get(entity).idealPosition.getPosition().dst(Mappers.physics.get(entity).body.getPosition()) < 20) {
+				body.applyForceToCenter(steering.linear, true);
+			} else {
+				Mappers.physics.get(entity).body.setTransform(Mappers.rubberbanding.get(entity).idealPosition.getPosition(), 0);
+			}
+		}
+	}
+
+	private void applyAI(SteeringAcceleration<Vector2> steering, float deltaTime) {
+
 	}
 }

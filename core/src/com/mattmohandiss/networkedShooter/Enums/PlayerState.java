@@ -17,7 +17,7 @@ public enum PlayerState implements State<Entity> {
 
 		@Override
 		public void update(Entity entity) {
-
+			Mappers.physics.get(entity).body.setLinearVelocity(Mappers.movement.get(entity).direction);
 		}
 
 		@Override
@@ -34,7 +34,7 @@ public enum PlayerState implements State<Entity> {
 
 		@Override
 		public void update(Entity entity) {
-			Mappers.physics.get(entity).body.setLinearVelocity(0, 0);
+			//Mappers.physics.get(entity).body.setLinearVelocity(0, 0);
 		}
 
 		@Override

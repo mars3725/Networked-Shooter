@@ -51,7 +51,7 @@ public class HUD {
 
 	public void update() {
 		label.setText("(" + ((int) Mappers.physics.get(game.getPlayer()).body.getPosition().x) + "," + ((int) Mappers.physics.get(game.getPlayer()).body.getPosition().y) + ")");
-		label2.setText("(" + ((int) Mappers.physics.get(game.getPlayer()).body.getLinearVelocity().x) + "," + ((int) Mappers.physics.get(game.getPlayer()).body.getLinearVelocity().y) + ")");
+		label2.setText(Mappers.movement.get(game.getPlayer()).direction.toString());
 		label3.setText(Mappers.stateMachine.get(game.getPlayer()).stateMachine.getCurrentState().toString());
 		label4.setText(String.valueOf(Gdx.graphics.getFramesPerSecond()));
 	}
